@@ -16,7 +16,7 @@ export class AuthService {
         const existingUser = await this.userModel.findOne({ email });
 
         if (existingUser) {
-            throw new UnauthorizedException("User already exists");
+            throw new UnauthorizedException("Email has already been used");
         }
 
         const hashedPassword = await bcrypt.hash(password, 10);
@@ -27,6 +27,7 @@ export class AuthService {
         });
 
         const token = this.jwtService.sign({ id: user._id });
+        await user.save();
         return { token };
     }
 
@@ -35,13 +36,13 @@ export class AuthService {
 
         const user = await this.userModel.findOne({ email });
         if (!user) {
-            throw new UnauthorizedException("Inavalid Username or Password");
+            throw new UnauthorizedException("Inavalid email or Password");
         }
 
         const isPasswordMatched = await bcrypt.compare(password, user.password);
 
         if (!isPasswordMatched) {
-            throw new UnauthorizedException("Invalid Username and Password");
+            throw new UnauthorizedException("Invalid email and Password");
         }
 
         const token = this.jwtService.sign({ id: user._id });
